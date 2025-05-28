@@ -1,0 +1,351 @@
+  <!--Deepika Hemant Tendulkar-->
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Department Survey</title>
+    <!--Bootstrap Css-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!--Custom Styles applied to HTML elements---->
+    <style>
+      body{
+          background-color: beige !important; 
+      }
+      .header {
+        background-color: #FFCC33; 
+        border: 5px solid #006633;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        padding: 20px;
+      }
+      h1 {
+          color: #006633;
+      }
+      .btn-submit {
+          background-color: #006633;
+          color: #fff;
+      }
+      .btn-submit:hover {
+          background-color:#049404;
+      }
+      .container {
+          margin-top: 20px;
+      }
+      .form-control:focus {
+          box-shadow: none;
+          border-color: #006633;
+      }
+      .requiredfield {
+          color: red;
+      }
+    </style>
+    <script type="text/javascript">
+      var now= new Date();
+      var hour =now.getHours();
+      var surveyUsername;
+      if(hour<12)
+      document.write("<h1>Good Morning, "); // display good morning greeting 
+      else
+      {
+      hour= hour - 12;
+      if(hour<6)
+      document.write("<h1>Good Afternoon, ");// display good afternoon greeting 
+      else
+      document.write("<h1>Good Evening, ");// display good evening greeting 
+      }
+      if (document.cookie){
+      var cookie_=decodeURIComponent(document.cookie);
+      var cookiename= cookie_.split("=");
+      surveyUsername=cookiename[1];
+      }
+      else
+      {
+        surveyUsername=window.prompt("Please enter your name","Deepika");
+        var expirationTime = new Date();
+        expirationTime.setTime(expirationTime.getTime() + (10 * 60 * 1000)); //after 10 mins the cookie will expire
+        document.cookie ="name="+ escape(surveyUsername);
+      }
+      document.writeln(surveyUsername+", welcome to Cs Department Survey Page!<h1>");
+      document.writeln("<a href='javascript:nameChange()'>"+"Click here if your name is not "+surveyUsername+"</a>");
+      // Name Change 
+      function nameChange(){
+      document.cookie="name=null; expires=Fri, 26 Dec 2000 00:00:02 GMT"; // set the expiration date in the past to delete the cookie
+      location.reload ();
+      }
+      //Validation of the form 
+      function onSubmitFormValidation(event) {
+        event.preventDefault();
+        let errors = [];
+        if (!/^[a-zA-Z]+$/.test(document.getElementById('username').value)) {
+          errors.push("Username must contain only alphabets.");
+          document.getElementById('username').value = ''; 
+        }
+        if (!/^[a-zA-Z0-9\s]+$/.test(document.getElementById('streetaddress').value)) {
+          errors.push("Street Address must contain only appropriate characters.");
+          document.getElementById('streetaddress').value = ''; 
+        }
+        if (!/^\S+@\S+\.\S+$/.test(document.getElementById('emailid').value)) {
+          errors.push("Email address format is invalid.");
+          document.getElementById('emailid').value = ''; 
+        }
+        if (document.querySelectorAll('input[type="checkbox"]:checked').length < 2) {
+          errors.push("Please check at least two options.");
+        }
+        if (document.querySelectorAll('input[type="radio"]:checked').length === 0) {
+          errors.push("Please select one option for interest.");
+        }
+        if (errors.length > 0) {
+          alert(errors.join("\n"));
+        } else {
+          alert("The form is submitted successfully!"); 
+        }
+      }
+
+      // Reset Button Function for clearing out all the fields
+      function resetBtn() {
+        document.getElementById('username').value = '';
+        document.getElementById('streetaddress').value = '';
+        document.getElementById('likelihood').selectedIndex = 0;
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+        document.getElementById('phone').value = '';
+        document.getElementById('emailid').value = '';
+        document.getElementById('city').value = '';
+        document.getElementById('zipcode').value = '';
+        document.getElementById('comments').value = '';
+        document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+        document.getElementById('state').value = '';
+      }
+      // validating Data on Blur function
+      function onBlurDataValidation() {
+        const dataField = document.getElementById('data').value;
+        const numbers = dataField.split(',').map(num => num.trim()).map(Number);
+        // Check if there are exactly 10 numbers and in the range 1-100
+        if (numbers.length != 10 || numbers.some(num => num < 1 || num > 100 || isNaN(num))) {
+          alert("Please enter exactly ten numbers between 1 and 100, separated by commas.");
+          document.getElementById('average').value = '';
+          document.getElementById('maximum').value = '';
+          return;
+        }
+        // Calculating Avg and Max
+        const average = (numbers.reduce((sum, num) => sum + num, 0) / numbers.length).toFixed(2);
+        const maximum = Math.max(...numbers);
+        // Displaying Avg and Max
+        document.getElementById('average').value = average;
+        document.getElementById('maximum').value = maximum;
+      }
+
+      // Zipcode Validation Function
+      function validatationOfZipcode() {
+        const cityElement = document.getElementById('cityZip');
+        const stateElement = document.getElementById('stateZip');
+        const errorMessage = document.getElementById('zip-error');
+        cityElement.textContent = '';
+        stateElement.textContent = '';
+        errorMessage.textContent = '';
+    if (document.getElementById('zipcode').value.trim().length === 0) {
+      return;
+    }
+    errorMessage.textContent = "Checking zip...";
+    const requestAsyncronous = new XMLHttpRequest();
+    requestAsyncronous.open('GET', 'zipcodes.json', true);
+    requestAsyncronous.setRequestHeader("Accept", "application/json; charset=utf-8");
+    requestAsyncronous.onreadystatechange = function() {
+      if (requestAsyncronous.readyState === 4) {
+        if (requestAsyncronous.status === 200) {
+          const data = JSON.parse(requestAsyncronous.responseText);
+          const found = data.zipcodes.find(item => item.zip === document.getElementById('zipcode').value.trim());
+          // if zipcode is found then display the city and state associated to it
+          if (found) {
+            cityElement.textContent = found.city;   // Display city 
+            stateElement.textContent = found.state;   // Display State 
+            errorMessage.textContent = '';
+          } else { // zipcode not found
+            errorMessage.textContent = "Invalid zip code.";
+            cityElement.textContent = '';
+            stateElement.textContent = '';
+          }
+        } else if (requestAsyncronous.status === 500) {
+          errorMessage.textContent = "Zip validation service not available.";
+        } else {
+          errorMessage.textContent = "Error fetching zip code data.";
+        }
+      }
+    };
+    requestAsyncronous.onerror = function() {
+      errorMessage.textContent = "Error fetching zip code data.";
+    };
+    requestAsyncronous.send();
+  }
+      </script>
+  </head>
+    <!--body---->
+  <body id="colr">
+  <div class="header">
+    <h1>CS Department Survey</h1>
+  </div>
+  <div class="container">
+    <!--form Section---->
+    <form autocomplete="on" onsubmit="onSubmitFormValidation(event)" >
+      <div class="form-group">
+    <!--User Name Section---->
+        <label for="username">Username<span class="requiredfield">*</span></label>
+        <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required autofocus>
+      </div>
+    <!--Address Section---->
+      <div class="form-group">
+        <label for="streetaddress">Street Address<span class="requiredfield">*</span></label>
+        <input type="text" class="form-control" id="streetaddress" name="streetaddress" placeholder="Enter your address" required>
+      </div>
+      <!--State Section---->
+      <div class="form-group">
+        <label for="state">State<span class="requiredfield">*</span></label>
+        <input type="text" class="form-control" id="state" name="state" placeholder="State" required>
+      </div>
+      <!--ZipCode Section---->
+      <div class="form-group">
+        <label for="zipcode">Zip <span class="requiredfield">*</span></label>
+        <input type="text" class="form-control" id="zipcode" name="zipcode" placeholder="22030" onblur="validatationOfZipcode()" required>
+        <span id="zip-error" class="error-message"></span>
+      </div>
+      <!--City Section---->
+      <div class="form-group">
+        <label>City:</label>
+        <span id="cityZip"></span>
+      </div>
+      <!--State Section---->
+      <div class="form-group">
+        <label>State:</label>
+        <span id="stateZip"></span>
+      </div>
+      <!--Telephone No Section---->
+      <div class="form-group">
+        <label for="phone">Telephone Number <span class="requiredfield">*</span></label>
+        <input type="tel" class="form-control" id="phone" name="phone" placeholder="561-000-0000" required>
+      </div>
+      <!--Email Section---->
+      <div class="form-group">
+        <label for="emailid">Email <span class="requiredfield">*</span></label>
+        <input type="email" class="form-control" id="emailid" name="emailid" placeholder="email@gmu.edu" required>
+      </div>
+      <!--Website url Section---->
+      <div class="form-group">
+        <label for="url">Website URL <span class="requiredfield">*</span></label>
+        <input type="url" class="form-control" id="url" name="url" placeholder="https://dummy.com" required>
+      </div>
+      <!--Data Section---->
+      <div class="form-group">
+        <label for="data">Data (Enter 10 numbers separated by commas)<span class="requiredfield">*</span></label>
+        <input type="text" class="form-control" id="data" name="data" placeholder="1, 2, 3, 4, 5, 6, 7, 8, 9, 10" onblur="onBlurDataValidation()" required>
+      </div>
+      <!--Average Section---->
+      <div class="form-group">
+        <label>Average:</label>
+        <input type="text" class="form-control" id="average" name="average" readonly>
+      </div>
+      <!--Maximum Section---->
+      <div class="form-group">
+        <label>Maximum:</label>
+        <input type="text" class="form-control" id="maximum" name="maximum" readonly>
+      </div>
+      <!--High-School Graduation Month Section (datalist)---->
+      <div class="form-group">
+          <label for="graduationmonth">High-School Graduation Month <span class="requiredfield">*</span></label>
+          <input class="form-control" list="graduationmonths" id="graduationmonth" name="graduationmonth" placeholder="Select the graduation month" required>
+          <datalist id="graduationmonths">
+            <option value="January">
+            <option value="February">
+            <option value="March">
+            <option value="April">
+            <option value="May">
+            <option value="June">
+            <option value="July">
+            <option value="August">
+            <option value="September">
+            <option value="October">
+            <option value="November">
+            <option value="December">
+          </datalist>
+        </div>
+        <!--High-School Graduation Year Section---->
+        <div class="form-group">
+          <label for="graduationyear">High School Graduation Year <span class="requiredfield">*</span></label>
+          <input class="form-control" type="number" id="graduationyear" name="graduationyear" placeholder="YYYY" min="1600" max="3000" required>
+        </div>  
+        <!--Date of Survey Section---->
+      <div class="form-group">
+        <label for="date">Date of Survey <span class="requiredfield">*</span></label>
+        <input class="form-control" type="date" id="date" name="date" required>
+      </div>
+      <!--Campus Appeal Section (checkbox)---->
+      <div class="form-group">
+        <label>What about the campus appealed to you the most?</label>
+        <br>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="students" name="students" value="students">
+          <label class="form-check-label" for="students">Students</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="location" name="location" value="location">
+          <label class="form-check-label" for="location">Location</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="campus" name="campus" value="campus">
+          <label class="form-check-label" for="campus">Campus</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox"  id="atmosphere" name="atmosphere" value="atmosphere">
+          <label class="form-check-label" for="atmosphere">Atmosphere</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="dormrooms" name="dormrooms" value="dormrooms">
+          <label class="form-check-label" for="dormrooms">Dorm Rooms</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="sports" name="sports" value="sports">
+          <label class="form-check-label" for="sports">Sports</label>
+        </div>
+      </div>
+      <!--Interest Section (Radio Button)---->
+      <div class="form-group">
+        <label>What sparked your interest in the university?</label><br>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" id="friends" name="friends" value="friends">
+          <label class="form-check-label" for="friends">Friends</label>
+        </div>
+        <div class="form-check">
+          <input  class="form-check-input" type="radio" id="tv" name="tv" value="tv">
+          <label class="form-check-label" for="tv">Television</label>
+        </div>
+        <div class="form-check">
+          <input  class="form-check-input" type="radio" id="internet" name="internet" value="internet">
+          <label class="form-check-label" for="internet">Internet</label>
+        </div>
+        <div class="form-check">
+          <input  class="form-check-input" type="radio" id="other" name="other" value="other">
+          <label class="form-check-label" for="other">Other</label>
+        </div>
+      </div>
+      <!--likelihood Section (Options) ---->
+      <div class="form-group">
+          <label for="likelihood">How likely are you to recommend this school to other prospective students? </label>
+          <select class="form-control" id="likelihood" name="likelihood" required>
+              <option value="" disabled selected>Select your option</option>
+              <option value="verylikely">Very Likely</option>
+              <option value="likely">Likely</option>
+              <option value="unlikely">Unlikely</option>
+            </select>
+          </div>
+      <!--Additional Comments Section (textarea) ---->
+      <div class="form-group">
+          <label for="comments">Additional Comments</label>
+          <textarea class="form-control" rows="4" id="comments"></textarea>
+      </div>
+      <!--Submit Btn-->
+      <button type="submit" class="btn btn-submit">Submit</button>
+      <!--Reset Btn-->
+      <button type="button" class="btn btn-secondary" onclick="resetBtn()">Reset</button>
+  </form>
+  <br>
+  </div>
+  </body>
+  </html>
